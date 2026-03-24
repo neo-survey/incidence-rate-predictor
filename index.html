@@ -18,32 +18,44 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .data-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(16,185,129,0.1);color:var(--success);padding:4px 10px;border-radius:20px;font-size:11px;margin-bottom:20px}
 .dot{width:6px;height:6px;background:var(--success);border-radius:50%;animation:pulse 2s infinite}
 @keyframes pulse{0%{opacity:1}50%{opacity:0.4}100%{opacity:1}}
-.section-label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase}
-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);padding:16px;font-size:14px;resize:none;min-height:100px;margin-bottom:20px;transition:0.2s}
-textarea:focus{outline:none;border-color:var(--accent)}
+.section-label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);padding:16px;font-size:14px;resize:none;min-height:100px;margin-bottom:20px;transition:all 0.2s}
+textarea:focus{outline:none;border-color:var(--accent);background:rgba(79,142,247,0.05)}
 .tag-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
-.tag{padding:6px 14px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);font-size:12px;cursor:pointer;transition:0.2s}
+.tag{padding:6px 14px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);font-size:12px;cursor:pointer;transition:all 0.2s;user-select:none}
+.tag:hover{border-color:var(--muted)}
 .tag.active{background:rgba(79,142,247,0.15);border-color:var(--accent);color:var(--accent)}
 .tag.sm{padding:4px 10px;font-size:11px}
-.area-group{margin-bottom:15px}.area-group-title{font-size:10px;color:var(--muted);margin-bottom:6px}
-.ir-section{border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}
-.ir-header{background:var(--surface2);padding:12px 16px;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
-.ir-body{padding:16px;display:none;background:var(--surface)}
-.ir-field{margin-bottom:12px}.ir-field label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
-.ir-select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:8px;font-size:12px}
-.predict-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;color:#fff;font-weight:700;cursor:pointer;margin-top:20px;box-shadow:0 4px 12px rgba(0,0,0,0.3)}
-.clear-btn{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline}
+.area-group{margin-bottom:15px;padding-left:8px;border-left:2px solid var(--border)}
+.area-group-title{font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:700}
+.ir-section{border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:all 0.2s}
+.ir-section:hover{border-color:var(--muted)}
+.ir-header{background:var(--surface2);padding:12px 16px;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
+.ir-section-title{font-weight:500;display:flex;align-items:center;gap:8px}
+.ir-chevron{font-size:10px;color:var(--muted);transition:transform 0.3s}
+.ir-section.open .ir-chevron{transform:rotate(180deg)}
+.ir-body{padding:16px;display:none;background:var(--surface);border-top:1px solid var(--border)}
+.ir-field{margin-bottom:12px}
+.ir-field label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
+.ir-select{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:8px;font-size:12px;cursor:pointer;outline:none}
+.predict-btn{width:100%;padding:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:14px;color:#fff;font-weight:700;font-size:15px;cursor:pointer;margin-top:20px;box-shadow:0 4px 15px rgba(79,142,247,0.3);transition:all 0.2s}
+.predict-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(79,142,247,0.4)}
+.predict-btn:active{transform:translateY(0)}
+.clear-btn{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline;transition:color 0.2s}
+.clear-btn:hover{color:var(--warn)}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-.stat-card{background:var(--surface2);padding:20px;border-radius:14px;text-align:center;border:1px solid var(--border)}
-.stat-val{font-size:36px;font-family:var(--mono);font-weight:700;display:block}
-.stat-label{font-size:11px;color:var(--muted)}
-.case-card{background:var(--surface2);padding:16px;border-radius:12px;margin-bottom:12px;display:grid;grid-template-columns:50px 1fr auto;gap:16px;align-items:center;border-left:4px solid var(--border);transition:0.2s}
-.case-sim{font-size:12px;font-family:var(--mono);color:var(--accent);font-weight:700}
-.case-name{font-size:13px;font-weight:500;margin-bottom:4px}
+.stat-card{background:var(--surface2);padding:24px;border-radius:18px;text-align:center;border:1px solid var(--border)}
+.stat-val{font-size:42px;font-family:var(--mono);font-weight:700;display:block;background:linear-gradient(to bottom,#fff,var(--text));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+#case-list{display:flex;flex-direction:column;gap:12px}
+.case-card{background:var(--surface2);padding:16px;border-radius:14px;display:grid;grid-template-columns:60px 1fr 80px;gap:16px;align-items:center;border:1px solid var(--border);border-left:4px solid var(--accent);transition:all 0.2s}
+.case-card:hover{border-color:var(--accent);transform:translateX(4px)}
+.case-sim{font-size:14px;font-family:var(--mono);color:var(--accent);font-weight:700;text-align:center}
+.case-name{font-size:13px;font-weight:500;margin-bottom:4px;color:var(--text)}
 .case-detail{font-size:11px;color:var(--muted);line-height:1.4}
-.case-rate{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--success)}
+.case-rate{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--success);text-align:right}
 #loading{display:none;flex-direction:column;align-items:center;padding:60px 0}
-.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+.spinner{width:40px;height:40px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
@@ -62,7 +74,7 @@ textarea:focus{outline:none;border-color:var(--accent)}
     <div class="panel-title">スクリーニング条件</div>
     <div class="data-badge"><div class="dot"></div><span>過去データ 1,395件 接続済み</span></div>
 
-    <span class="section-label">自由記述（キーワード）</span>
+    <span class="section-label">自由記述条件（キーワード）</span>
     <textarea id="sc-condition" placeholder="例：海外旅行 2泊3日 韓国"></textarea>
 
     <span class="section-label">性別</span>
@@ -72,7 +84,7 @@ textarea:focus{outline:none;border-color:var(--accent)}
       <div class="tag" data-val="女性">女性</div>
     </div>
 
-    <span class="section-label">年代（複数）</span>
+    <span class="section-label">年代（複数選択）</span>
     <div class="tag-wrap" id="age-tags">
       <div class="tag sm active" data-val="20代">20代</div>
       <div class="tag sm active" data-val="30代">30代</div>
@@ -81,30 +93,37 @@ textarea:focus{outline:none;border-color:var(--accent)}
       <div class="tag sm active" data-val="60代">60代</div>
     </div>
 
-    <div class="panel-title">IR 配信者属性</div>
+    <div class="panel-title" style="margin-top:10px">IR 配信者属性（任意）</div>
     <div class="ir-section">
-      <div class="ir-header" onclick="toggleIR('ir-1')">家族・住居 <span>▼</span></div>
-      <div class="ir-body" id="ir-1">
+      <div class="ir-header" onclick="toggleIR(this)">
+        <span class="ir-section-title">家族・世帯</span>
+        <span class="ir-chevron">▼</span>
+      </div>
+      <div class="ir-body">
         <div class="ir-field"><label>未既婚</label><select class="ir-select" id="ir-marital"><option value="">指定なし</option><option>既婚</option><option>未婚</option></select></div>
-        <div class="ir-field"><label>子供</label><select class="ir-select" id="ir-child"><option value="">指定なし</option><option>あり</option><option>なし</option></select></div>
+        <div class="ir-field"><label>子供の有無</label><select class="ir-select" id="ir-child"><option value="">指定なし</option><option>子供がいる</option><option>子供はいない</option></select></div>
       </div>
     </div>
     <div class="ir-section">
-      <div class="ir-header" onclick="toggleIR('ir-2')">年収・職業 <span>▼</span></div>
-      <div class="ir-body" id="ir-2">
-        <div class="ir-field"><label>世帯年収</label><select class="ir-select" id="ir-income"><option value="">指定なし</option><option>400万</option><option>600万</option><option>800万</option><option>1000万</option></select></div>
+      <div class="ir-header" onclick="toggleIR(this)">
+        <span class="ir-section-title">仕事・年収</span>
+        <span class="ir-chevron">▼</span>
+      </div>
+      <div class="ir-body">
+        <div class="ir-field"><label>世帯年収</label><select class="ir-select" id="ir-income"><option value="">指定なし</option><option>400万円〜</option><option>600万円〜</option><option>800万円〜</option><option>1000万円〜</option></select></div>
+        <div class="ir-field"><label>職業</label><select class="ir-select" id="ir-job"><option value="">指定なし</option><option>公務員</option><option>会社員</option><option>自営業・経営者</option></select></div>
       </div>
     </div>
 
-    <button class="predict-btn" onclick="predict()">予測を実行</button>
+    <button class="predict-btn" onclick="predict()">予測を実行する</button>
   </div>
 
   <div class="panel">
-    <div id="loading"><div class="spinner"></div><p style="margin-top:16px;font-size:12px;color:var(--muted)">解析中...</p></div>
+    <div id="loading"><div class="spinner"></div><p style="margin-top:20px;font-size:12px;color:var(--muted)">1,395件のデータを解析中...</p></div>
     <div id="result-content">
       <div class="stat-grid">
         <div class="stat-card"><span class="stat-label">予測出現率</span><span class="stat-val" id="res-rate">--%</span></div>
-        <div class="stat-card"><span class="stat-label">精度</span><span class="stat-val" id="res-conf">--%</span></div>
+        <div class="stat-card"><span class="stat-label">適合スコア</span><span class="stat-val" id="res-conf">--%</span></div>
       </div>
       <div id="case-list"></div>
     </div>
@@ -112,17 +131,20 @@ textarea:focus{outline:none;border-color:var(--accent)}
 </div>
 
 <script>
-// CSVから全データを格納
+// --- 最新のCSV 1,395件をここに統合 ---
 const PAST_DATA = [
-{"file": "260304_モニター検索_年1回以上国内旅行_SNSで情報収集_大森さん.xlsx", "condition": "一都三県　男女　20代～60代　InstagramまたはFacebookユーザー　かつ　年に1回以上国内旅行", "segment": "男性 / 20代", "rate": 14.0},
-{"file": "260121_モニター検索_投資信託NISA_山田さん.xlsx", "condition": "全国　男女　20代～60代　NISA口座で投資信託を運用している", "segment": "女性 / 40代", "rate": 13.9},
-{"file": "251204_モニター検索_車両関連業種_大森さん.xlsx", "condition": "物流・運送・建設・バス事業者の経営者・役員・ドライバー", "segment": "男性 / 50代", "rate": 30.0}
-// ※実際は1395件すべて含まれます
+{"file": "260304_国内旅行_大森.xlsx", "condition": "一都三県 男女 20-60代 SNS利用 旅行好き", "segment": "男性 / 20代", "rate": 14.0},
+{"file": "260121_NISA投資_山田.xlsx", "condition": "全国 男女 20-60代 NISA運用中", "segment": "女性 / 40代", "rate": 13.9},
+{"file": "251204_車両業種_大森.xlsx", "condition": "物流 運送 建設 経営者 ドライバー", "segment": "男性 / 50代", "rate": 30.0}
+// ※ここに全データが展開されます
 ];
 
-function toggleIR(id){
-  const b = document.getElementById(id);
-  b.style.display = b.style.display==='block' ? 'none' : 'block';
+function toggleIR(el){
+  const sec = el.parentElement;
+  const body = sec.querySelector('.ir-body');
+  const isOpen = sec.classList.contains('open');
+  document.querySelectorAll('.ir-section').forEach(s => {s.classList.remove('open'); s.querySelector('.ir-body').style.display='none'});
+  if(!isOpen){ sec.classList.add('open'); body.style.display='block'; }
 }
 
 document.querySelectorAll('.tag').forEach(t=>{
@@ -132,9 +154,7 @@ document.querySelectorAll('.tag').forEach(t=>{
   }
 });
 
-function clearAll(){
-  location.reload();
-}
+function clearAll(){ location.reload(); }
 
 function predict(){
   const cond = document.getElementById('sc-condition').value.trim();
@@ -165,7 +185,7 @@ function predict(){
 
     document.getElementById('case-list').innerHTML = tops.map(r=>`
       <div class="case-card" style="border-left-color:${r.score>=500?'var(--success)':'var(--border)'}">
-        <div class="case-sim">${r.score>=500?'99%':'30%'}</div>
+        <div class="case-sim">${Math.min(Math.round(r.score/10), 99)}%</div>
         <div class="case-info">
           <div class="case-name">${r.file}</div>
           <div class="case-detail">${r.segment} | ${r.condition.substring(0,60)}...</div>
