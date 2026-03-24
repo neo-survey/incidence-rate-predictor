@@ -1,222 +1,86 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>出現率予測AI Pro</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
-:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#222535;--border:#2e3347;--accent:#4f8ef7;--accent2:#7c3aed;--success:#10b981;--warn:#f59e0b;--text:#e8eaf0;--muted:#6b7280;--mono:'DM Mono',monospace;--sans:'Noto Sans JP',sans-serif}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
-.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
-.logo-area{display:flex;align-items:center;gap:12px}
-.logo{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#fff}
-.container{display:grid;grid-template-columns:1fr 400px;gap:24px;max-width:1400px;margin:0 auto}
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;height:fit-content}
-h2{font-size:16px;margin-bottom:20px;display:flex;align-items:center;gap:8px;color:var(--accent)}
-
-/* Input Styles */
-.field-label{display:block;font-size:13px;font-weight:500;margin-bottom:8px;color:var(--muted)}
-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);padding:16px;font-size:14px;resize:none;margin-bottom:20px;transition:border-color 0.2s}
-textarea:focus{outline:none;border-color:var(--accent)}
-.tag-group{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
-.tag{padding:6px 14px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);font-size:13px;cursor:pointer;transition:0.2s}
-.tag.active{background:var(--accent);border-color:var(--accent);color:#fff}
-
-/* Result Styles */
-.res-tabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:10px;margin-bottom:20px}
-.tab-btn{flex:1;padding:8px;border:none;background:none;color:var(--muted);font-size:12px;border-radius:6px;cursor:pointer}
-.tab-btn.active{background:var(--surface);color:var(--text);box-shadow:0 2px 4px rgba(0,0,0,0.2)}
-
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-.stat-card{background:var(--surface2);padding:16px;border-radius:12px;text-align:center;border:1px solid var(--border)}
-.stat-val{font-size:28px;font-family:var(--mono);font-weight:bold;display:block;margin-top:4px}
-.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase}
-
-.case-card{background:var(--surface2);padding:12px;border-radius:10px;margin-bottom:12px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border-left:4px solid var(--border)}
-.case-card.high-match{border-left-color:var(--success)}
-.case-sim{font-size:10px;background:var(--border);padding:2px 6px;border-radius:4px;color:var(--text)}
-.case-name{font-size:13px;font-weight:500;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.case-detail{font-size:11px;color:var(--muted)}
-.case-rate{font-family:var(--mono);font-weight:bold;color:var(--accent)}
-
-.predict-btn{width:100%;padding:14px;background:linear-gradient(to right,var(--accent),var(--accent2));border:none;border-radius:12px;color:#fff;font-weight:bold;cursor:pointer;margin-top:10px;transition:opacity 0.2s}
-.predict-btn:hover{opacity:0.9}
-
-#loading{display:none;flex-direction:column;align-items:center;gap:12px;padding:40px 0}
-.spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-@media (max-width:900px){ .container{grid-template-columns:1fr} }
-</style>
-</head>
-<body>
-
-<div class="header">
-  <div class="logo-area">
-    <div class="logo">AI</div>
-    <div>
-      <h1 style="font-size:18px">出現率予測AI Pro</h1>
-      <p style="font-size:10px;color:var(--muted)">Market Incidence Simulator</p>
-    </div>
-  </div>
-</div>
-
-<div class="container">
-  <div class="panel">
-    <h2>入力シミュレーター</h2>
-    
-    <label class="field-label">スクリーニング条件（キーワードを意識して入力）</label>
-    <textarea id="sc-condition" rows="4" placeholder="例：海外旅行 2泊3日 韓国 過去1年以内..."></textarea>
-    
-    <label class="field-label">性別</label>
-    <div class="tag-group" id="gender-tags">
-      <div class="tag active" data-val="男女">男女</div>
-      <div class="tag" data-val="男性">男性</div>
-      <div class="tag" data-val="女性">女性</div>
-    </div>
-    
-    <label class="field-label">対象年代（複数選択可）</label>
-    <div class="tag-group" id="age-tags">
-      <div class="tag active" data-val="20代">20代</div>
-      <div class="tag active" data-val="30代">30代</div>
-      <div class="tag active" data-val="40代">40代</div>
-      <div class="tag active" data-val="50代">50代</div>
-      <div class="tag active" data-val="60代">60代</div>
-    </div>
-
-    <button class="predict-btn" onclick="predict()">予測を実行する</button>
-  </div>
-
-  <div class="panel">
-    <div class="res-tabs">
-      <button class="tab-btn active" onclick="switchTab('past')">過去実績参照</button>
-      <button class="tab-btn" onclick="switchTab('open')">オープンデータ(β)</button>
-    </div>
-
-    <div id="loading">
-      <div class="spinner"></div>
-      <p style="font-size:12px;color:var(--muted)">類似案件を解析中...</p>
-    </div>
-
-    <div id="result-content">
-      <div class="stat-grid">
-        <div class="stat-card">
-          <span class="stat-label">予測出現率</span>
-          <span class="stat-val" id="res-rate">--%</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-label">マッチ精度</span>
-          <span class="stat-val" id="res-conf">--%</span>
-        </div>
-      </div>
-
-      <div id="case-list-area">
-        <h3 style="font-size:12px;margin-bottom:12px;color:var(--muted)">参照した類似案件</h3>
-        <div id="case-list">
-          </div>
-      </div>
-      
-      <div id="open-data-area" style="display:none; color:var(--muted); font-size:13px; text-align:center; padding:40px 0;">
-        <p>オープンデータ（統計局e-Stat等）の<br>参照機能を準備中です。</p>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
-// サンプルデータ（実際はここにお持ちのデータを追加してください）
-const PAST_DATA = [
-  {file: "2024_海外旅行調査", condition: "1年以内に海外旅行（韓国・台湾）に行った人", segment: "20-60代 男女", rate: 12.5},
-  {file: "2023_飲食チェーン利用", condition: "週に1回以上ファストフードを利用する人", segment: "20-40代 男女", rate: 45.2},
-  {file: "2024_車両購入意識", condition: "半年以内に車の買い替えを検討している人", segment: "30-50代 男性", rate: 5.8},
-  {file: "2023_美容トレンド", condition: "特定の韓国コスメブランドを認知している", segment: "20-30代 女性", rate: 18.2}
-];
+// ここに元の index.html にあった「PAST_DATA = [...]」の塊をそのまま残してください。
+// もし消えてしまった場合は、元のファイルのPAST_DATAの部分をここに貼り直します。
 
-// タグのトグル機能
-document.querySelectorAll('.tag').forEach(tag => {
-  tag.addEventListener('click', function() {
-    if(this.parentNode.id === 'gender-tags') {
-      this.parentNode.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
-    }
-    this.classList.toggle('active');
-  });
-});
-
-function switchTab(type) {
-  const tabs = document.querySelectorAll('.tab-btn');
-  tabs.forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-  
-  if(type === 'open') {
-    document.getElementById('case-list-area').style.display = 'none';
-    document.getElementById('open-data-area').style.display = 'block';
-  } else {
-    document.getElementById('case-list-area').style.display = 'block';
-    document.getElementById('open-data-area').style.display = 'none';
-  }
-}
-
+// --- 修正版：検索ロジック ---
 function predict() {
   const condText = document.getElementById('sc-condition').value.trim();
-  if(!condText) return alert("条件を入力してください");
+  if(!condText) {
+    alert("条件を入力してください");
+    return;
+  }
 
+  // ローディング表示
   document.getElementById('result-content').style.display = 'none';
   document.getElementById('loading').style.display = 'flex';
 
   setTimeout(() => {
-    // 1. 入力キーワードの分解
-    const keywords = condText.split(/[\s　,、。]+/).filter(k => k.length > 1);
+    // 1. 入力された言葉をバラバラにする（例：「海外旅行　韓国」→「海外旅行」「韓国」）
+    const inputKeywords = condText.split(/[\s　,、。]+/).filter(k => k.length > 1);
     
-    // 2. スコアリングロジック
+    // 現在選択されているタグ（性別・年代・エリア）を取得
+    const selGender = document.querySelector('#gender-tags .tag.active')?.dataset.val || "";
+    const selAges = Array.from(document.querySelectorAll('#age-tags .tag.active')).map(t => t.dataset.val);
+    const selAreas = Array.from(document.querySelectorAll('.area-group .tag.active')).map(t => t.dataset.val);
+
+    // 2. 過去データすべてを1つずつチェック
     let scored = PAST_DATA.map(d => {
       let score = 0;
-      let matches = 0;
-      
-      // キーワード一致判定（重要度：高）
-      keywords.forEach(kw => {
-        if(d.condition.includes(kw) || d.file.includes(kw)) {
-          score += 100;
-          matches++;
+      let matchCount = 0;
+
+      // 【最優先】キーワードが含まれているか？（1個につき500点）
+      inputKeywords.forEach(kw => {
+        if (d.condition.includes(kw) || d.file.includes(kw) || d.segment.includes(kw)) {
+          score += 500; 
+          matchCount++;
         }
       });
-      
-      // セグメント一致判定（重要度：低）
-      const selGender = document.querySelector('#gender-tags .tag.active')?.dataset.val;
-      if(d.segment.includes(selGender)) score += 10;
 
-      return {...d, score, matches};
+      // 【補助】属性が一致しているか？（1個につき10点）
+      if (d.segment.includes(selGender)) score += 10;
+      selAges.forEach(a => { if (d.segment.includes(a)) score += 5; });
+      selAreas.forEach(ar => { if (d.segment.includes(ar)) score += 5; });
+
+      return { ...d, score, matchCount };
     });
 
-    // スコア順ソート
+    // 3. スコアが高い順に並べる
     scored.sort((a, b) => b.score - a.score);
-    const tops = scored.slice(0, 3);
     
-    // 3. 表示反映
-    const avgRate = (tops.reduce((s, x) => s + x.rate, 0) / tops.length).toFixed(1);
-    document.getElementById('res-rate').textContent = (tops[0].score > 0 ? avgRate : "---") + "%";
+    // 上位5件をピックアップ
+    const tops = scored.slice(0, 5);
+
+    // 4. 数値の計算（スコア上位の平均）
+    const validTops = tops.filter(t => t.score > 0);
+    let predictedRate = "---";
+    if (validTops.length > 0) {
+      const sum = validTops.reduce((acc, cur) => acc + parseFloat(cur.rate), 0);
+      predictedRate = (sum / validTops.length).toFixed(1);
+    }
+
+    // 5. 画面に表示する
+    document.getElementById('res-rate').textContent = predictedRate + "%";
     
-    const confidence = Math.min(tops[0].score, 100);
+    // 信頼度（キーワードが1つでも入っていれば高くなるように設定）
+    const confidence = Math.min(matchCount * 40, 100);
     document.getElementById('res-conf').textContent = confidence + "%";
 
-    const listHtml = tops.map(r => `
-      <div class="case-card ${r.score >= 100 ? 'high-match' : ''}">
-        <div class="case-sim">Score: ${r.score}</div>
+    // 類似案件リストの作成
+    const listBody = document.getElementById('case-list');
+    listBody.innerHTML = tops.map(r => `
+      <div class="case-card" style="${r.score >= 500 ? 'border-left: 4px solid #10b981;' : ''}">
+        <div class="case-sim">${r.matchCount > 0 ? 'キーワード合致' : '属性のみ一致'}</div>
         <div class="case-info">
           <div class="case-name">${r.file}</div>
           <div class="case-detail">${r.condition}</div>
+          <div style="font-size:10px; color:#6b7280">関連度スコア: ${r.score}</div>
         </div>
         <div class="case-rate">${r.rate}%</div>
       </div>
     `).join('');
-    
-    document.getElementById('case-list').innerHTML = listHtml;
+
     document.getElementById('loading').style.display = 'none';
     document.getElementById('result-content').style.display = 'block';
   }, 600);
 }
 </script>
-
-</body>
-</html>
