@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>出現率予測AI Pro</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=DM+Mono:wght@400;700&display=swap');
+:root{--bg:#0f1117;--surface:#1a1d27;--border:#2e3347;--accent:#4f8ef7;--accent2:#7c3aed;--success:#10b981;--text:#e8eaf0;--muted:#6b7280;--sans:'Noto Sans JP',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);height:100vh;padding:20px;overflow:hidden}
+.app-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:0 10px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.app-logo{font-size:22px;font-weight:700;color:var(--accent);letter-spacing:1px;display:flex;align-items:center;gap:10px}
+.container{display:grid;grid-template-columns:820px 1fr;gap:24px;max-width:1920px;margin:0 auto;height:calc(100vh - 80px)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;display:flex;flex-direction:column;overflow:hidden}
+.scroll-area{flex:1;overflow-y:auto;padding:24px}
+.panel-title{font-size:14px;font-weight:700;margin:15px 0 10px;color:var(--accent);border-left:4px solid var(--accent);padding-left:10px;display:flex;justify-content:space-between;align-items:center}
+.sc-box{background:#222535;border-radius:12px;padding:16px;margin-bottom:20px;border:1px solid var(--border)}
+textarea{width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:12px;font-size:14px;resize:none;min-height:80px;outline:none}
+.hint-list{font-size:10.5px;color:var(--muted);line-height:1.7;margin-bottom:12px}
+.hint-list b{color:var(--success)}
+.ir-row{display:grid;grid-template-columns:180px 1fr;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.ir-label{font-size:11px;font-weight:700;color:var(--accent);padding-top:6px}
+.tag-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.tag{padding:5px 12px;border-radius:20px;background:#222535;border:1px solid var(--border);font-size:10px;cursor:pointer;color:var(--muted);transition:0.2s;user-select:none}
+.tag.active{background:rgba(79,142,247,0.3);border-color:var(--accent);color:var(--accent);font-weight:700}
+.tag.block-tag.active{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+.bottom-btns{padding:20px;background:var(--surface);border-top:1px solid var(--border);display:flex;gap:12px}
+.predict-btn{flex:2;padding:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;color:#fff;font-weight:700;font-size:16px;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);transition:transform 0.1s}
+.predict-btn:active{transform:scale(0.98)}
+.reset-attr-btn{flex:1;padding:18px;background:#2e3347;border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:13px;font-weight:700;cursor:pointer;transition:background 0.2s}
+.reset-attr-btn:hover{background:#3a415a}
+.stat-main{text-align:center;margin-bottom:20px;padding:20px;background:#222535;border-radius:20px;border:1px solid var(--border)}
+.stat-range{font-size:40px;font-weight:700;font-family:'DM Mono'}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);padding:12px;border-radius:12px;border:1px solid var(--border);text-align:center}
+.stat-card span{display:block;font-size:10px;color:var(--muted);margin-bottom:4px}
+.stat-card b{font-size:18px;font-family:'DM Mono';color:var(--accent)}
+.logic-box{background:rgba(79,142,247,0.05);border:1px dashed var(--accent);border-radius:12px;padding:16px;font-size:11px;line-height:1.7;color:var(--text);margin-bottom:24px}
+.case-card{background:#222535;padding:14px;border-radius:12px;margin-bottom:8px;border-left:4px solid var(--accent);font-size:12px}
+.load-btn{padding:5px 15px;background:var(--accent);color:#fff;border-radius:8px;cursor:pointer;font-size:11px}
+#csv-input{display:none}
+</style>
+</head>
+<body>
+<div class="app-header">
+  <div class="app-logo"><span>📊</span> 出現率予測AI</div>
+  <div style="font-size:11px; color:var(--muted)">営業推進部：過去実績エビデンス活用ツール</div>
+</div>
+<div class="container">
+  <div class="panel">
+    <div class="scroll-area">
+      <div class="panel-title" style="margin-top:0">
+        実績データの読込
+        <label class="load-btn" for="csv-input">CSVファイルを選択</label>
+        <input type="file" id="csv-input" accept=".csv">
+      </div>
+      <div id="data-status" style="font-size:11px; color:var(--muted); margin-bottom:15px;">※ データを読み込むとブラウザに記憶されます</div>
+
+      <div class="panel-title">その他スクリーニング条件</div>
+      <div class="sc-box">
+        <div class="hint-list">
+          <b>入力例：</b> <code>人事 採用 担当</code> / <code>旅行 国内 年1回以上</code> / <code>NISA 運用 開始</code>
+        </div>
+        <textarea id="sc-cond" placeholder="単語をスペース区切りで入力"></textarea>
+      </div>
+
+      <div class="panel-title">基本属性</div>
+      <div class="ir-row"><div class="ir-label">性別</div><div class="tag-wrap" id="gender-tags"><div class="tag active" data-val="男女">男女</div><div class="tag" data-val="男性">男性</div><div class="tag" data-val="女性">女性</div></div></div>
+      <div class="ir-row"><div class="ir-label">年代</div><div class="tag-wrap" id="age-tags">
+        <div class="tag" data-val="10代">10代</div><div class="tag active" data-val="20代">20代</div><div class="tag active" data-val="30代">30代</div><div class="tag active" data-val="40代">40代</div><div class="tag active" data-val="50代">50代</div><div class="tag active" data-val="60代">60代</div><div class="tag" data-val="70代以上">70代以上</div>
+      </div></div>
+      <div class="ir-row"><div class="ir-label">エリアブロック</div><div class="tag-wrap" id="block-tags">
+        <div class="tag block-tag active" data-b="all">全国</div><div class="tag block-tag" data-b="13">一都三県</div><div class="tag block-tag" data-b="kansai">関西</div><div class="tag block-tag" data-b="chubu">中部</div><div class="tag block-tag" data-b="tohoku">北海道・東北</div><div class="tag block-tag" data-b="chugoku">中国・四国</div><div class="tag block-tag" data-b="kyushu">九州・沖縄</div>
+      </div></div>
+      <div class="ir-row"><div class="ir-label">都道府県</div><div class="tag-wrap" id="pref-tags">
+        <div class="tag active" data-val="北海道">北海道</div><div class="tag active" data-val="青森県">青森県</div><div class="tag active" data-val="岩手県">岩手県</div><div class="tag active" data-val="宮城県">宮城県</div><div class="tag active" data-val="秋田県">秋田県</div><div class="tag active" data-val="山形県">山形県</div><div class="tag active" data-val="福島県">福島県</div><div class="tag active" data-val="茨城県">茨城県</div><div class="tag active" data-val="栃木県">栃木県</div><div class="tag active" data-val="群馬県">群馬県</div><div class="tag active" data-val="埼玉県">埼玉県</div><div class="tag active" data-val="千葉県">千葉県</div><div class="tag active" data-val="東京都">東京都</div><div class="tag active" data-val="神奈川県">神奈川県</div><div class="tag active" data-val="新潟県">新潟県</div><div class="tag active" data-val="富山県">富山県</div><div class="tag active" data-val="石川県">石川県</div><div class="tag active" data-val="福井県">福井県</div><div class="tag active" data-val="山梨県">山梨県</div><div class="tag active" data-val="長野県">長野県</div><div class="tag active" data-val="岐阜県">岐阜県</div><div class="tag active" data-val="静岡県">静岡県</div><div class="tag active" data-val="愛知県">愛知県</div><div class="tag active" data-val="三重県">三重県</div><div class="tag active" data-val="滋賀県">滋賀県</div><div class="tag active" data-val="京都府">京都府</div><div class="tag active" data-val="大阪府">大阪府</div><div class="tag active" data-val="兵庫県">兵庫県</div><div class="tag active" data-val="奈良県">奈良県</div><div class="tag active" data-val="和歌山県">和歌山県</div><div class="tag active" data-val="鳥取県">鳥取県</div><div class="tag active" data-val="島根県">島根県</div><div class="tag active" data-val="岡山県">岡山県</div><div class="tag active" data-val="広島県">広島県</div><div class="tag active" data-val="山口県">山口県</div><div class="tag active" data-val="徳島県">徳島県</div><div class="tag active" data-val="香川県">香川県</div><div class="tag active" data-val="愛媛県">愛媛県</div><div class="tag active" data-val="高知県">高知県</div><div class="tag active" data-val="福岡県">福岡県</div><div class="tag active" data-val="佐賀県">佐賀県</div><div class="tag active" data-val="長崎県">長崎県</div><div class="tag active" data-val="熊本県">熊本県</div><div class="tag active" data-val="大分県">大分県</div><div class="tag active" data-val="宮崎県">宮崎県</div><div class="tag active" data-val="鹿児島県">鹿児島県</div><div class="tag active" data-val="沖縄県">沖縄県</div>
+      </div></div><div class="panel-title">配信者属性設定（詳細11項目）</div>
+      <div class="ir-row"><div class="ir-label">■未既婚</div><div class="tag-wrap" id="marital-tags"><div class="tag" data-val="既婚">既婚</div><div class="tag" data-val="未婚">未婚</div><div class="tag" data-val="離婚・死別">離婚・死別</div></div></div>
+      <div class="ir-row"><div class="ir-label">■子供の有無</div><div class="tag-wrap" id="child-tags"><div class="tag" data-val="子供はいない">子供はいない</div><div class="tag" data-val="子供がいる">子供がいる</div></div></div>
+      <div class="ir-row"><div class="ir-label">■世帯での立場</div><div class="tag-wrap">
+        <div class="tag" data-val="世帯主">世帯主</div><div class="tag" data-val="世帯主の配偶者">世帯主の配偶者</div><div class="tag" data-val="世帯主の子供（世帯主の子供の配偶者含む）">世帯主の子供（世帯主の子供の配偶者含む）</div><div class="tag" data-val="世帯主の親（世帯主の配偶者の親含む）">世帯主の親（世帯主の配偶者の親含む）</div><div class="tag" data-val="世帯主の兄弟・姉妹・親戚">世帯主の兄弟・姉妹・親戚</div><div class="tag" data-val="その他（世帯主の友人、世帯主の恋人など）">その他</div>
+      </div></div>
+      <div class="ir-row"><div class="ir-label">■家族（世帯）構成</div><div class="tag-wrap">
+        <div class="tag" data-val="一人だけの単身世帯">一人だけの単身世帯</div><div class="tag" data-val="夫婦ふたりだけで住んでいる世帯">夫婦ふたりだけで住んでいる世帯</div><div class="tag" data-val="夫婦と未婚の子供とで住んでいる世帯">夫婦と未婚の子供とで住んでいる世帯</div><div class="tag" data-val="片親と未婚の子供とで住んでいる世帯">片親と未婚の子供とで住んでいる世帯</div><div class="tag" data-val="親と子供夫婦とで住んでいる世帯">親と子供夫婦とで住んでいる世帯</div><div class="tag" data-val="親と子供夫婦と孫とで住んでいる世帯">親と子供夫婦と孫とで住んでいる世帯</div><div class="tag" data-val="兄弟・親戚・友人・恋人と住んでいる世帯">兄弟・親戚・友人・恋人と住んでいる世帯</div><div class="tag" data-val="その他">その他</div>
+      </div></div>
+      <div class="ir-row"><div class="ir-label">■同居人数</div><div class="tag-wrap">
+        <div class="tag" data-val="１人">１人</div><div class="tag" data-val="２人">２人</div><div class="tag" data-val="３人">３人</div><div class="tag" data-val="４人">４人</div><div class="tag" data-val="５人">５人</div><div class="tag" data-val="６人">６人</div><div class="tag" data-val="７人">７人</div><div class="tag" data-val="８人以上">８人以上</div>
+      </div></div>
+      <div class="ir-row"><div class="ir-label">■居住形態</div><div class="tag-wrap">
+        <div class="tag" data-val="持ち家一戸建て">持ち家一戸建て</div><div class="tag" data-val="持ち家マンション">持ち家マンション</div><div class="tag" data-val="民間の借家一戸建て">民間の借家一戸建て</div><div class="tag" data-val="民間の賃貸マンション・アパート">民間の賃貸マンション・アパート</div><div class="tag" data-val="公的賃貸住宅（公営・ＵＲ－旧公団賃貸等）">公적賃貸住宅</div><div class="tag" data-val="給与住宅（社宅・独身寮等）">給与住宅</div><div class="tag" data-val="学生寮">学生寮</div><div class="tag" data-val="借間・下宿">借間・下宿</div><div class="tag" data-val="その他">その他</div>
+      </div></div>
+      <div class="ir-row"><div class="ir-label">■職業・身分</div><div class="tag-wrap">
+        <div class="tag" data-val="会社経営者・役員・団体役員">会社経営者・役員・団体役員</div><div class="tag" data-val="会社員・団体職員">会社員・団体職員</div><div class="tag" data-val="地方公務員">地方公務員</div><div class="tag" data-val="国家公務員">国家公務員</div><div class="tag" data-val="自営業・個人事業主・フリーランス">自営業・フリー</div><div class="tag" data-val="自由業（開業医・弁護士事務所経営・プロスポーツ選手など）">自由業</div><div class="tag" data-val="家事手伝い（自営業などの手伝いをし所得を得ている人）">家事手伝い</div><div class="tag" data-val="主婦（専業）">主婦（専業）</div><div class="tag" data-val="無職・休職中・求職中">無職・休職</div><div class="tag" data-val="パート・アルバイト・フリーター">パート・アルバイト</div><div class="tag" data-val="年金生活">年金生活</div><div class="tag" data-val="大学院生">大学院生</div><div class="tag" data-val="大学生・短大生・高専生">大学生・短大・高専</div><div class="tag" data-val="専門学校生・専修学校生">専門学校生</div><div class="tag" data-val="予備校生・自宅浪人">予備校・自宅浪人</div><div class="tag" data-val="高校生">高校生</div><div class="tag" data-val="中学生">中学生</div><div class="tag" data-val="小学生">小学生</div><div class="tag" data-val="その他">その他</div>
+      </div></div>
+      <div class="ir-row"><div class="ir-label">■業種</div><div class="tag-wrap">
+        <div class="tag" data-val="農業">農業</div><div class="tag" data-val="林業">林業</div><div class="tag" data-val="漁業">漁業</div><div class="tag" data-val="鉱業">鉱業</div><div class="tag" data-val="建設業">建設業</div><div class="tag" data-val="製造業">製造業</div><div class="tag" data-val="電気・ガス・熱供給・水道業">電気・ガス・水道業</div><div class="tag" data-val="情報通信業">情報通信業</div><div class="tag" data-val="運輸業">運輸業</div><div class="tag" data-val="卸売・小売業">卸売・小売業</div><div class="tag" data-val="金融・保険業">金融・保険業</div><div class="tag" data-val="不動産業">不動産業</div><div class="tag" data-val="飲食店・宿泊業">飲食店・宿泊業</div><div class="tag" data-val="医療・福祉">医療・福祉</div><div class="tag" data-val="教育・学習支援">教育・学習支援</div><div class="tag" data-val="複合サービス業（郵便局・組合など）">複合サービス業</div><div class="tag" data-val="出版">出版</div><div class="tag" data-val="新聞社">新聞社</div><div class="tag" data-val="ＩＴサービス">ＩＴサービス</div><div class="tag" data-val="広告会社">広告会社</div><div class="tag" data-val="市場調査・マーケティング">市場調査・マーケティング</div><div class="tag" data-val="コンサルタント">コンサルタント</div><div class="tag" data-val="その他サービス業">その他サービス業</div><div class="tag" data-val="その他">その他</div>
+      </div></div>
+      <div class="ir-row"><div class="ir-label">■職種</div><div class="tag-wrap">
+        <div class="tag" data-val="社長室">社長室</div><div class="tag" data-val="経営企画">経営企画</div><div class="tag" data-val="企画・プランニング">企画・プランニング</div><div class="tag" data-val="専門・技術">専門・技術</div><div class="tag" data-val="研究・開発">研究・開発</div><div class="tag" data-val="事務・総務">事務・総務</div><div class="tag" data-val="人事・採用">人事・採用</div><div class="tag" data-val="営業">営業</div><div class="tag" data-val="販売・サービス・接客・調理">販売・接客・調理</div><div class="tag" data-val="会計・経理・財務">会計・経理・財務</div><div class="tag" data-val="クリエイティブ">クリエイティブ</div><div class="tag" data-val="マーケティング">マーケティング</div><div class="tag" data-val="技能・労務">技能・労務</div><div class="tag" data-val="情報システム">情報システム</div><div class="tag" data-val="広報・宣伝">広報・宣伝</div><div class="tag" data-val="調査">調査</div><div class="tag" data-val="法務">法務</div><div class="tag" data-val="その他">その他</div>
+      </div></div>
+      <div class="ir-row"><div class="ir-label">■個人年収</div><div class="tag-wrap">
+        <div class="tag" data-val="収入はない">収入はない</div><div class="tag" data-val="２００万円未満">２００万円未満</div><div class="tag" data-val="２００万円～３００万円未満">200-300万</div><div class="tag" data-val="３００万円～４００万円未満">300-400万</div><div class="tag" data-val="４００万円～５００万円未満">400-500万</div><div class="tag" data-val="５００万円～６００万円未満">500-600万</div><div class="tag" data-val="６００万円～７００万円未満">600-700万</div><div class="tag" data-val="７００万円～８００万円未満">700-800万</div><div class="tag" data-val="８００万円～９００万円未満">800-900万</div><div class="tag" data-val="９００万円～１０００万円未満">900-1000万</div><div class="tag" data-val="１０００万円～１２００万円未満">1000-1200万</div><div class="tag" data-val="１２００万円～１４００万円未満">1200-1400万</div><div class="tag" data-val="１４００万円～１６００万円未満">1400-1600万</div><div class="tag" data-val="１６００万円～１８００万円未満">1600-1800万</div><div class="tag" data-val="１８００万円～２０００万円未満">1800-2000万</div><div class="tag" data-val="２０００万円～２５００万円未満">2000-2500万</div><div class="tag" data-val="２５００万円～３０００万円未満">2500-3000万</div><div class="tag" data-val="３０００万円以上">３０００万円以上</div>
+      </div></div>
+      <div class="ir-row"><div class="ir-label">■世帯年収</div><div class="tag-wrap">
+        <div class="tag" data-val="２００万円未満">２００万円未満</div><div class="tag" data-val="２００万円～３００万円未満">200-300万</div><div class="tag" data-val="３００万円～４００万円未満">300-400万</div><div class="tag" data-val="４００万円～５００万円未満">400-500万</div><div class="tag" data-val="５００万円～６００万円未満">500-600万</div><div class="tag" data-val="６００万円～７００万円未満">600-700万</div><div class="tag" data-val="７００万円～８００万円未満">700-800万</div><div class="tag" data-val="８００万円～９００万円未満">800-900万</div><div class="tag" data-val="９００万円～１０００万円未満">900-1000万</div><div class="tag" data-val="１０００万円～１２００万円未満">1000-1200万</div><div class="tag" data-val="１２００万円～１４００万円未満">1200-1400万</div><div class="tag" data-val="１４００万円～１６００万円未満">1400-1600万</div><div class="tag" data-val="１６００万円～１８００万円未満">1600-1800万</div><div class="tag" data-val="１８００万円～２０００万円未満">1800-2000万</div><div class="tag" data-val="２０００万円～２５００万円未満">2000-2500万</div><div class="tag" data-val="２５００万円～３０００万円未満">2500-3000万</div><div class="tag" data-val="３０００万円～４０００万円未満">3000-4000万</div><div class="tag" data-val="４０００万円～５０００万円未満">4000-5000万</div><div class="tag" data-val="５０００万円以上">５０００万円以上</div>
+      </div></div>
+    </div>
+    <div class="bottom-btns">
+      <button class="predict-btn" onclick="predict()">予測を実行する</button>
+      <button class="reset-attr-btn" onclick="resetUI()">条件のみリセット</button>
+    </div>
+    <div style="text-align:center; padding-bottom:15px">
+      <span style="color:var(--muted); font-size:10px; cursor:pointer; text-decoration:underline;" onclick="clearStorage()">※CSVデータ自体を消去する</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="scroll-area">
+      <div id="loading" style="display:none"><p style="text-align:center; padding:50px;">解析中...</p></div>
+      <div id="result-area">
+        <div class="stat-main">
+          <span style="color:var(--muted); font-size:13px; display:block; margin-bottom:10px;">予測出現率（平均）</span>
+          <div class="stat-range" id="res-avg">--%</div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card"><span>参照件数</span><b id="res-count">0</b></div>
+          <div class="stat-card"><span>信頼度</span><b id="res-conf">--%</b></div>
+          <div class="stat-card"><span>最大値</span><b id="res-max">--%</b></div>
+          <div class="stat-card"><span>最小値</span><b id="res-min">--%</b></div>
+        </div>
+        <div class="logic-box">
+          <div class="logic-title">📊 算出ロジック解説</div>
+          1. <b>キーワード照合:</b> 入力された条件と過去案件の「案件条件」「ファイル名」を全文検索。<br>
+          2. <b>属性マッチング:</b> 選択された属性と、過去CSVの「セグメント」に含まれる実績を照合。<br>
+          3. <b>統計処理:</b> ヒットした案件の中から上位10件を抽出し、出現率の平均から結果を算出します。
+        </div>
+        <div class="panel-title" style="margin-top:20px">類似の実績案件（上位5件）</div>
+        <div id="case-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+let RAW_DATA = [];
+const BLOCKS = {"13":["東京都","神奈川県","埼玉県","千葉県"],"kansai":["大阪府","京都府","兵庫県","滋賀県","奈良県","和歌山県"],"chubu":["愛知県","静岡県","岐阜県","三重県","山梨県","長野県","新潟県","富山県","石川県","福井県"],"tohoku":["北海道","青森県","岩手県","宮城県","秋田県","山形県","福島県"],"chugoku":["鳥取県","島根県","岡山県","広島県","山口県","徳島県","香川県","愛媛県","高知県"],"kyushu":["福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県"],"all":["北海道","青森県","岩手県","宮城県","秋田県","山形県","福島県","茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県","新潟県","富山県","石川県","福井県","山梨県","長野県","岐阜県","静岡県","愛知県","三重県","滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県","鳥取県","島根県","岡山県","広島県","山口県","徳島県","香川県","愛媛県","高知県","福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県"]};
+
+window.onload = function() {
+  const saved = localStorage.getItem('appearance_data');
+  if(saved) {
+    RAW_DATA = JSON.parse(saved);
+    document.getElementById('data-status').innerHTML = `<b style="color:var(--success)">記憶済みデータ (${RAW_DATA.length.toLocaleString()}件) を読込完了</b>`;
+  }
+};
+
+document.getElementById('csv-input').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function(f) {
+    const lines = f.target.result.split('\n');
+    RAW_DATA = lines.slice(1).map(line => {
+      const col = line.split(',');
+      return { file: col[0], cond: col[2]||"", seg: col[3]||"", rate: parseFloat(col[4]) };
+    }).filter(d => !isNaN(d.rate));
+    localStorage.setItem('appearance_data', JSON.stringify(RAW_DATA));
+    document.getElementById('data-status').innerHTML = `<b style="color:var(--success)">${RAW_DATA.length.toLocaleString()}件を記憶しました</b>`;
+  };
+  reader.readAsText(file, 'shift-jis');
+});
+
+function resetUI() {
+  document.getElementById('res-avg').textContent = '--%';
+  document.getElementById('res-count').textContent = '0';
+  document.getElementById('res-conf').textContent = '--%';
+  document.getElementById('res-max').textContent = '--%';
+  document.getElementById('res-min').textContent = '--%';
+  document.getElementById('case-list').innerHTML = '';
+  document.getElementById('sc-cond').value = '';
+  document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+  document.querySelector('[data-val="男女"]').classList.add('active');
+  document.querySelectorAll('#age-tags .tag').forEach((t,i) => { if(i>0 && i<6) t.classList.add('active'); });
+  document.querySelector('[data-b="all"]').classList.add('active');
+  document.querySelectorAll('#pref-tags .tag').forEach(t => t.classList.add('active'));
+  const btn = document.querySelector('.reset-attr-btn');
+  btn.style.background = '#1a1d27';
+  setTimeout(() => { btn.style.background = ''; }, 150);
+}
+
+function clearStorage() {
+  if(confirm("記憶しているCSVデータを消去しますか？")) {
+    localStorage.removeItem('appearance_data');
+    location.reload();
+  }
+}
+
+document.addEventListener('click', function(e){
+  const t = e.target.closest('.tag'); if(!t) return;
+  const p = t.parentElement;
+  if(p.id==='gender-tags'){ p.querySelectorAll('.tag').forEach(x=>x.classList.remove('active')); t.classList.add('active'); }
+  else if(t.classList.contains('block-tag')){
+    const b = t.dataset.b;
+    document.querySelectorAll('#block-tags .tag').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('#pref-tags .tag').forEach(pt=>pt.classList.toggle('active', BLOCKS[b].includes(pt.dataset.val)));
+  } else { t.classList.toggle('active'); }
+});
+
+function predict(){
+  if(RAW_DATA.length === 0) { alert("先にCSVデータを読み込んでください"); return; }
+  document.getElementById('loading').style.display='block';
+  setTimeout(()=>{
+    const keyword = document.getElementById('sc-cond').value.trim();
+    const kws = keyword.split(/[\s　,]+/).filter(k => k.length > 1);
+    const activeTags = Array.from(document.querySelectorAll('.tag.active')).map(t => t.dataset.val);
+    let scored = RAW_DATA.map(d => {
+      let s = 0;
+      kws.forEach(k => { if(d.cond.includes(k) || d.file.includes(k)) s += 200; });
+      activeTags.forEach(tag => { if(d.seg.includes(tag) || d.cond.includes(tag)) s += 20; });
+      return { ...d, score: s };
+    }).filter(d => d.score > 0).sort((a, b) => b.score - a.score);
+    if(scored.length === 0) { alert("類似実績なし。条件を広げてください。"); document.getElementById('loading').style.display='none'; return; }
+    const tops = scored.slice(0, 10);
+    const rates = tops.map(d => d.rate);
+    const avg = (rates.reduce((a, b) => a + b, 0) / rates.length).toFixed(1);
+    document.getElementById('res-avg').textContent = avg + "%";
+    document.getElementById('res-count').textContent = scored.length.toLocaleString();
+    document.getElementById('res-conf').textContent = Math.min(tops[0].score / 2, 98).toFixed(0) + "%";
+    document.getElementById('res-max').textContent = Math.max(...rates).toFixed(1) + "%";
+    document.getElementById('res-min').textContent = Math.min(...rates).toFixed(1) + "%";
+    document.getElementById('case-list').innerHTML = tops.slice(0, 5).map(d => `
+      <div class="case-card">
+        <div style="font-weight:700; margin-bottom:4px; font-size:11px;">${d.file}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:var(--muted); font-size:10px;">${d.seg}</span>
+          <b style="color:var(--success)">${d.rate}%</b>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('loading').style.display='none';
+  }, 400);
+}
+</script>
+</body>
+</html>
